@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "This will create ROS II Composable node for You."
+
+echo "Hello"
