@@ -1,0 +1,103 @@
+#!/bin/bash
+
+echo "This will create ROS II Composable node C++ for You."
+
+# Create your_program.cpp
+echo "To create composable node ( C++ ),, "
+read -p "Please Enter file name :" file_name
+touch $file_name.cpp
+
+# add buildin headers
+echo "//#include <chrono>"                                                              >> $file_name.cpp
+echo "//#include <cstdio>"                                                              >> $file_name.cpp
+echo "//#include <memory>"                                                              >> $file_name.cpp
+echo "//#include <utility>"                                                             >> $file_name.cpp
+echo "#include \"rclcpp/rclcpp.hpp\""                                                   >> $file_name.cpp
+echo "#include \"rclcpp_components/register_node_macro.hpp\""                           >> $file_name.cpp
+
+# add custom headers
+read -p "Please enter Header for Publisher ( example: std_msgs/msg/string ):" pub_header
+echo "#include \"$pub_header.hpp\""                                                     >> $file_name.cpp
+
+echo " "                                                                                >> $file_name.cpp
+echo "using namespace std::chrono_literals;"                                            >> $file_name.cpp
+echo " "                                                                                >> $file_name.cpp
+
+# class
+read -p "Enter Class Name ( example: Talker ):" class_name
+echo -e "class $class_name : public rclcpp::Node"                                       >> $file_name.cpp
+echo -e "{"                                                                             >> $file_name.cpp # start Class
+echo -e "\tpublic:"                                                                     >> $file_name.cpp
+echo -e "\t\texplicit $class_name(const rclcpp::NodeOptions & options)"                 >> $file_name.cpp
+
+# Class Name to Node name ( MyClass or myClass to my_class )
+# convert the first character to lowercase
+camelString="$(tr '[:upper:]' '[:lower:]' <<< "${class_name:0:1}")${class_name:1}"
+# convert camelCase to snake_case
+snake_string=$(echo "$camelString" | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
+
+
+# Header header string to template ( std_msgs/msg/int32 to std_msgs::msg::Int32 )
+# set IFS (Internal Field Separator) to comma
+IFS='/' read -r -a array <<< "$pub_header"
+my_array=()
+for element in "${array[@]}"
+do
+    my_array+=("$element")
+done
+# echo ${my_array[2]}
+# Change Last element first Character to Captical Character
+first_str=${my_array[0]}
+second_str=${my_array[1]}
+last_str=${my_array[2]}
+Last_str="$(tr '[:lower:]' '[:upper:]' <<< "${last_str:0:1}")${last_str:1}"
+
+echo -e "\t\t: Node(\"$snake_string\", options)"                                            >> $file_name.cpp # C++ initializer
+echo -e "\t\t{"                                                                             >> $file_name.cpp
+
+read -p "Please enter Publisher topic name ( example: my_integer ):" topic_name
+echo -e "\t\t\tpublisher_ = this->create_publisher<$first_str::$second_str::$Last_str>(\"$topic_name\", 10);"  >> $file_name.cpp
+echo -e "\t\t\ttimer_ = this->create_wall_timer(                                        "   >> $file_name.cpp
+echo -e "\t\t\t\tstd::chrono::seconds(1),"                                                  >> $file_name.cpp
+echo -e "\t\t\t\tstd::bind(&$class_name::timer_callback, this));"                           >> $file_name.cpp
+echo -e "\t\t\tRCLCPP_INFO(this->get_logger(), \"Node has been started.\");"                >> $file_name.cpp
+echo -e "\t\t}"                                                                             >> $file_name.cpp  
+
+echo -e "\tprivate:"                                                                        >> $file_name.cpp
+echo -e "\t\tvoid timer_callback()"                                                         >> $file_name.cpp
+echo -e "\t\t{"                                                                             >> $file_name.cpp
+echo -e "\t\t\tauto msg = $first_str::$second_str::$Last_str(); "                           >> $file_name.cpp
+echo -e "\t\t\t//msg.data = \"Hello, ROS 2!\"; "                                            >> $file_name.cpp
+echo -e "\t\t\tpublisher_->publish(msg); "                                                  >> $file_name.cpp
+echo -e "\t\t\t//RCLCPP_INFO(this->get_logger(), \"Publishing: '%s'\", msg.data.c_str()); " >> $file_name.cpp
+echo -e "\t\t }"                                                                            >> $file_name.cpp
+echo -e "\t\trclcpp::Publisher<$first_str::$second_str::$Last_str>::SharedPtr publisher_;"  >> $file_name.cpp
+echo -e "\t\trclcpp::TimerBase::SharedPtr timer_;"                                          >> $file_name.cpp
+        
+echo -e "};"                                                                                >> $file_name.cpp # end Class
+echo " "
+echo "#include \"rclcpp_components/register_node_macro.hpp\""                               >> $file_name.cpp
+echo "RCLCPP_COMPONENTS_REGISTER_NODE($class_name)"                                         >> $file_name.cpp
+
+echo " "
+echo "--------------- ADD these lines to CMakeLists.txt ---------------"
+echo " "
+echo "# Declare a C++ library"
+echo "add_library(my_$file_name SHARED src/$file_name.cpp)"
+echo "ament_target_dependencies(my_$file_name rclcpp rclcpp_components $first_str)"
+echo " "
+echo "# Register the component"
+echo "rclcpp_components_register_nodes(my_$file_name \"$class_name\")"
+echo " "
+echo "# Install the library"
+echo "install(TARGETS my_$file_name"
+echo "\tARCHIVE DESTINATION lib"
+echo "\tLIBRARY DESTINATION lib"
+echo "\tRUNTIME DESTINATION bin)"
+echo " "
+echo "------------------------------ END ------------------------------"
+echo " "
+
+#name=$HOME
+#sed -i "s|/home/rom/ros2/ros2_ws|$ros2_ws_path|" ./rom2109_description/urdf/urdf.urdf
+#sed -i "s|/home/rom|$name|" ./rom2109_description/urdf/urdf.urdf
