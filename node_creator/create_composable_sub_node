@@ -10,25 +10,25 @@ touch $file_name.cpp
 # add buildin headers
 echo "//#include <chrono>"                                                              >> $file_name.cpp
 echo "//#include <cstdio>"                                                              >> $file_name.cpp
-echo "//#include <memory>"                                                              >> $file_name.cpp
+echo "#include <memory>"                                                                >> $file_name.cpp
 echo "//#include <utility>"                                                             >> $file_name.cpp
 echo "#include \"rclcpp/rclcpp.hpp\""                                                   >> $file_name.cpp
 echo "#include \"rclcpp_components/register_node_macro.hpp\""                           >> $file_name.cpp
 
 # add custom headers
-read -p "Please enter Header for Publisher ( example: std_msgs/msg/string ):" pub_header
-echo "#include \"$pub_header.hpp\""                                                     >> $file_name.cpp
+read -p "Please enter Header for Subscriber ( example: std_msgs/msg/string ):" sub_header
+echo "#include \"$sub_header.hpp\""                                                     >> $file_name.cpp
 
 echo " "                                                                                >> $file_name.cpp
-echo "using namespace std::chrono_literals;"                                            >> $file_name.cpp
+echo "//using namespace std::chrono_literals;"                                          >> $file_name.cpp
 echo " "                                                                                >> $file_name.cpp
 
 # class
-read -p "Enter Class Name ( example: Talker ):" class_name
+read -p "Enter Class Name ( example: Listener ):" class_name
 echo -e "class $class_name : public rclcpp::Node"                                       >> $file_name.cpp
 echo -e "{"                                                                             >> $file_name.cpp # start Class
 echo -e "\tpublic:"                                                                     >> $file_name.cpp
-echo -e "\t\texplicit $class_name(const rclcpp::NodeOptions & options)"                 >> $file_name.cpp
+echo -e "\t\t$class_name(const rclcpp::NodeOptions & options)"                          >> $file_name.cpp
 
 # Class Name to Node name ( MyClass or myClass to my_class )
 # convert the first character to lowercase
@@ -39,7 +39,7 @@ snake_string=$(echo "$camelString" | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[
 
 # Header header string to template ( std_msgs/msg/int32 to std_msgs::msg::Int32 )
 # set IFS (Internal Field Separator) to comma
-IFS='/' read -r -a array <<< "$pub_header"
+IFS='/' read -r -a array <<< "$sub_header"
 my_array=()
 for element in "${array[@]}"
 do
@@ -55,29 +55,20 @@ Last_str="$(tr '[:lower:]' '[:upper:]' <<< "${last_str:0:1}")${last_str:1}"
 echo -e "\t\t: Node(\"$snake_string\", options)"                                            >> $file_name.cpp # C++ initializer
 echo -e "\t\t{"                                                                             >> $file_name.cpp
 
-read -p "Please enter Publisher topic name ( example: my_integer ):" topic_name
-echo -e "\t\t\tpublisher_ = this->create_publisher<$first_str::$second_str::$Last_str>(\"$topic_name\", 10);"  >> $file_name.cpp
-echo -e "\t\t\ttimer_ = this->create_wall_timer(                                        "   >> $file_name.cpp
-echo -e "\t\t\t\tstd::chrono::seconds(1),"                                                  >> $file_name.cpp
-echo -e "\t\t\t\tstd::bind(&$class_name::timer_callback, this));"                           >> $file_name.cpp
-echo -e "\t\t\tRCLCPP_INFO(this->get_logger(), \"Node has been started.\");"                >> $file_name.cpp
+read -p "Please enter Subscriber topic name ( example: my_integer ):" topic_name
+echo -e "\t\t\tsubscription_ = this->create_subscription<$first_str::$second_str::$Last_str>("  >> $file_name.cpp
+echo -e "\t\t\t\t\"$topic_name\", 10, std::bind(&MyComposableSubscriber::topic_callback, this, std::placeholders::_1));" >> $file_name.cpp
+echo -e "\t\t\tRCLCPP_INFO(this->get_logger(), "My Composable Subscriber Node has been started.");">> $file_name.cpp
 echo -e "\t\t}"                                                                             >> $file_name.cpp  
-
+#-----------------------------------------------------------------------------------  
 echo -e "\tprivate:"                                                                        >> $file_name.cpp
-echo -e "\t\tvoid timer_callback()"                                                         >> $file_name.cpp
+echo -e "\t\tvoid "                                                                         >> $file_name.cpp
+echo -e "\t\ttopic_callback(const $first_str::$second_str::$Last_str::SharedPtr msg) const" >> $file_name.cpp
 echo -e "\t\t{"                                                                             >> $file_name.cpp
-echo -e "\t\t\tauto msg = $first_str::$second_str::$Last_str(); "                           >> $file_name.cpp
-echo -e "\t\t\tsize_t subscriber_count = publisher_->get_subscription_count();"             >> $file_name.cpp
-echo -e "\t\t\tif (subscriber_count > 0)"                                                   >> $file_name.cpp
-echo -e "\t\t\t{"                                                                           >> $file_name.cpp
-echo -e "\t\t\t\t//msg.data = \"Hello, ROS 2!\"; "                                            >> $file_name.cpp
-echo -e "\t\t\t\tpublisher_->publish(msg); "                                                  >> $file_name.cpp
-echo -e "\t\t\t\t//RCLCPP_INFO(this->get_logger(), \"Publishing: '%s'\", msg.data.c_str()); " >> $file_name.cpp
-echo -e "\t\t\t}"                                                                           >> $file_name.cpp
+echo -e "\t\t\t// do your work"                                                             >> $file_name.cpp
 echo -e "\t\t}"                                                                             >> $file_name.cpp
-echo -e "\t\trclcpp::Publisher<$first_str::$second_str::$Last_str>::SharedPtr publisher_;"  >> $file_name.cpp
-echo -e "\t\trclcpp::TimerBase::SharedPtr timer_;"                                          >> $file_name.cpp
-        
+echo -e "\t\trclcpp::Subscription<$first_str::$second_str::$Last_str>::SharedPtr subscription_;">> $file_name.cpp
+#-----------------------------------------------------------------------------------  
 echo -e "};"                                                                                >> $file_name.cpp # end Class
 echo " "
 echo "#include \"rclcpp_components/register_node_macro.hpp\""                               >> $file_name.cpp
