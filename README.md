@@ -24,3 +24,25 @@ ros2 component load /ComponentManager your_pkg_name MyComposableNode
 ```
 
 #### Create launch file
+```
+from launch import LaunchDescription
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
+def generate_launch_description():
+    container = ComposableNodeContainer(
+            name='my_container',
+            namespace='',
+            package='rclcpp_components',
+            composable_node_descriptions=[
+                ComposableNode(
+                    package='your_pkg_name',
+                    plugin='$class_name',
+                    name='as_you_like'),
+            ],"
+            output='screen',
+    )
+    return LaunchDescription([container])
+```
+
+## ROS 1 အတွက် 
+ဒီ link ကို သွားပါ။

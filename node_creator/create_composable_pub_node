@@ -4,7 +4,7 @@ echo "This will create ROS II Composable node C++ for You."
 
 # Create your_program.cpp
 echo "To create composable node ( C++ ),, "
-read -p "Please Enter file name :" file_name
+read -p "Please Enter file name : " file_name
 touch $file_name.cpp
 
 # add buildin headers
@@ -16,7 +16,7 @@ echo "#include \"rclcpp/rclcpp.hpp\""                                           
 echo "#include \"rclcpp_components/register_node_macro.hpp\""                           >> $file_name.cpp
 
 # add custom headers
-read -p "Please enter Header for Publisher ( example: std_msgs/msg/string ):" pub_header
+read -p "Please enter Header for Publisher ( example: std_msgs/msg/string ): " pub_header
 echo "#include \"$pub_header.hpp\""                                                     >> $file_name.cpp
 
 echo " "                                                                                >> $file_name.cpp
@@ -24,7 +24,7 @@ echo "using namespace std::chrono_literals;"                                    
 echo " "                                                                                >> $file_name.cpp
 
 # class
-read -p "Enter Class Name ( example: Talker ):" class_name
+read -p "Enter Class Name ( example: Talker ): " class_name
 echo -e "class $class_name : public rclcpp::Node"                                       >> $file_name.cpp
 echo -e "{"                                                                             >> $file_name.cpp # start Class
 echo -e "\tpublic:"                                                                     >> $file_name.cpp
@@ -37,7 +37,7 @@ camelString="$(tr '[:upper:]' '[:lower:]' <<< "${class_name:0:1}")${class_name:1
 snake_string=$(echo "$camelString" | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
 
 
-# Header header string to template ( std_msgs/msg/int32 to std_msgs::msg::Int32 )
+# Header string to template ( std_msgs/msg/int32 to std_msgs::msg::Int32 )
 # set IFS (Internal Field Separator) to comma
 IFS='/' read -r -a array <<< "$pub_header"
 my_array=()
@@ -55,7 +55,7 @@ Last_str="$(tr '[:lower:]' '[:upper:]' <<< "${last_str:0:1}")${last_str:1}"
 echo -e "\t\t: Node(\"$snake_string\", options)"                                            >> $file_name.cpp # C++ initializer
 echo -e "\t\t{"                                                                             >> $file_name.cpp
 
-read -p "Please enter Publisher topic name ( example: my_integer ):" topic_name
+read -p "Please enter Publisher topic name ( example: my_integer ): " topic_name
 echo -e "\t\t\tpublisher_ = this->create_publisher<$first_str::$second_str::$Last_str>(\"$topic_name\", 10);"  >> $file_name.cpp
 echo -e "\t\t\ttimer_ = this->create_wall_timer(                                        "   >> $file_name.cpp
 echo -e "\t\t\t\tstd::chrono::seconds(1),"                                                  >> $file_name.cpp
