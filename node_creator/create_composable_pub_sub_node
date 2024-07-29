@@ -26,7 +26,7 @@ read -p "Enter Class Name ( example: TwistToMotors ): " class_name
 echo -e "class $class_name : public rclcpp::Node"                                       >> $file_name.cpp
 echo -e "{"                                                                             >> $file_name.cpp # start Class
 echo -e "\tpublic:"                                                                     >> $file_name.cpp
-echo -e "\t\t$class_name()"                                                             >> $file_name.cpp
+echo -e "\t\t$class_name(const rclcpp::NodeOptions & options)"                                                             >> $file_name.cpp
 
 # Class Name to Node name ( MyClass or myClass to my_class )
 # convert the first character to lowercase
@@ -65,7 +65,7 @@ s_second_str=${subscriber_array[1]}
 s_last_str=${subscriber_array[2]}
 s_Last_str="$(tr '[:lower:]' '[:upper:]' <<< "${s_last_str:0:1}")${s_last_str:1}"
 #-----------------------------------------------------------------------------------------------
-echo -e "\t\t: Node(\"$snake_string\")"                                                     >> $file_name.cpp # C++ initializer
+echo -e "\t\t: Node(\"$snake_string\", options)"                                                     >> $file_name.cpp # C++ initializer
 echo -e "\t\t{"                                                                             >> $file_name.cpp
 
 read -p "Please enter Publisher topic name ( example: my_publish topic ): " pub_topic_name
